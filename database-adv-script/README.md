@@ -5,6 +5,7 @@ This directory contains advanced SQL queries including joins and subqueries impl
 ## Table of Contents
 1. [Join Queries](#join-queries)
 2. [Subquery Examples](#subquery-examples)
+3. [Aggregations and Window Functions](#aggregations-and-window-functions)
 
 ## Join Queries
 
@@ -94,4 +95,65 @@ ORDER BY
     booking_count DESC, 
     u.last_name, 
     u.first_name;
+```
+
+## Aggregations and Window Functions
+
+### 1. Total Bookings per User
+
+**Objective**: Calculate the total number of bookings for each user, including those with no bookings.
+
+**Why it's useful**:
+- Identifies most active users
+- Helps in user segmentation and marketing targeting
+- Provides insights into user booking behavior
+
+**Query Example**:
+```sql
+SELECT 
+    u.user_id,
+    COALESCE(COUNT(b.booking_id), 0) AS total_bookings
+FROM 
+    users u
+LEFT JOIN 
+    bookings b ON u.user_id = b.user_id
+GROUP BY 
+    u.user_id
+ORDER BY 
+    total_bookings DESC;
+```
+
+### 2. Ranking Properties by Total Bookings
+
+**Objective**: Rank properties based on their total number of bookings, with proper handling of ties.
+
+**Why it's useful**:
+- Identifies most popular properties
+- Helps in performance analysis and pricing strategy
+- Can be used for featured property selection
+
+**Query Example**:
+```sql
+WITH property_booking_counts AS (
+    -- CTE to calculate total bookings per property
+    SELECT 
+        p.property_id,
+        p.name AS property_name,
+        COUNT(b.booking_id) AS total_bookings
+    FROM 
+        properties p
+    LEFT JOIN 
+        bookings b ON p.property_id = b.property_id
+    GROUP BY 
+        p.property_id, p.name
+)
+SELECT 
+    property_id,
+    property_name,
+    total_bookings,
+    DENSE_RANK() OVER (ORDER BY total_bookings DESC) AS booking_rank
+FROM 
+    property_booking_counts
+ORDER BY 
+    booking_rank, property_name;
 ```
