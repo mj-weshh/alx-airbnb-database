@@ -157,3 +157,37 @@ FROM
 ORDER BY 
     booking_rank, property_name;
 ```
+
+### 3. Row Numbering for Properties by Total Bookings
+
+**Objective**: Assign a unique row number to each property based on their total number of bookings.
+
+**Why it's useful**:
+- Provides a unique identifier for each row in the result set
+- Useful for pagination or when you need a guaranteed unique sequential number
+- Unlike RANK or DENSE_RANK, always produces sequential numbers without gaps or duplicates
+
+**Query Example**:
+```sql
+WITH property_booking_counts AS (
+    SELECT 
+        p.property_id,
+        p.name AS property_name,
+        COUNT(b.booking_id) AS total_bookings
+    FROM 
+        properties p
+    LEFT JOIN 
+        bookings b ON p.property_id = b.property_id
+    GROUP BY 
+        p.property_id, p.name
+)
+SELECT 
+    property_id,
+    property_name,
+    total_bookings,
+    ROW_NUMBER() OVER (ORDER BY total_bookings DESC) AS row_num
+FROM 
+    property_booking_counts
+ORDER BY 
+    row_num;
+```

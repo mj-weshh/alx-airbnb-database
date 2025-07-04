@@ -31,6 +31,7 @@ WITH property_booking_counts AS (
     GROUP BY 
         p.property_id, p.name
 )
+-- Example using DENSE_RANK (ties get same rank, no gaps in ranking)
 SELECT 
     property_id,
     property_name,
@@ -40,3 +41,28 @@ FROM
     property_booking_counts
 ORDER BY 
     booking_rank, property_name;
+
+-- 3. Row Numbering for Properties by Total Bookings
+-- Assigns a unique row number to each property based on total bookings
+-- Unlike RANK or DENSE_RANK, ROW_NUMBER always produces sequential numbers without gaps or duplicates
+WITH property_booking_counts AS (
+    SELECT 
+        p.property_id,
+        p.name AS property_name,
+        COUNT(b.booking_id) AS total_bookings
+    FROM 
+        properties p
+    LEFT JOIN 
+        bookings b ON p.property_id = b.property_id
+    GROUP BY 
+        p.property_id, p.name
+)
+SELECT 
+    property_id,
+    property_name,
+    total_bookings,
+    ROW_NUMBER() OVER (ORDER BY total_bookings DESC) AS row_num
+FROM 
+    property_booking_counts
+ORDER BY 
+    row_num;
