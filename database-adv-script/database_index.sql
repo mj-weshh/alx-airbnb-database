@@ -1,5 +1,64 @@
 -- Database Indexing Strategy for Airbnb Database
 -- This file contains recommended indexes to improve query performance
+-- along with EXPLAIN ANALYZE examples demonstrating their impact
+
+-- =============================================
+-- 1. PERFORMANCE ANALYSIS QUERIES
+-- =============================================
+
+-- Example 1: Before and after indexing for user booking history
+-- Before indexing (commented out - uncomment to test)
+/*
+EXPLAIN ANALYZE
+SELECT b.*, u.first_name, u.last_name
+FROM bookings b
+JOIN users u ON b.user_id = u.user_id
+WHERE u.last_name = 'Smith' 
+  AND b.status = 'confirmed';
+  
+-- Expected output would show full table scans on both tables
+-- After creating idx_users_name and idx_bookings_user_status, the same query:
+*/
+EXPLAIN ANALYZE
+SELECT b.*, u.first_name, u.last_name
+FROM bookings b
+JOIN users u ON b.user_id = u.user_id
+WHERE u.last_name = 'Smith' 
+  AND b.status = 'confirmed';
+
+-- Example 2: Property search by location and price range
+-- Before indexing (commented out - uncomment to test)
+/*
+EXPLAIN ANALYZE
+SELECT * FROM properties
+WHERE location LIKE '%New York%'
+  AND pricepernight BETWEEN 50 AND 200;
+*/
+
+-- After creating idx_properties_location and idx_properties_price
+EXPLAIN ANALYZE
+SELECT * FROM properties
+WHERE location LIKE '%New York%'
+  AND pricepernight BETWEEN 50 AND 200;
+
+-- Example 3: Date range query on bookings
+-- Before indexing (commented out - uncomment to test)
+/*
+EXPLAIN ANALYZE
+SELECT * FROM bookings
+WHERE start_date >= '2023-01-01' 
+  AND end_date <= '2023-12-31';
+*/
+
+-- After creating idx_bookings_dates
+EXPLAIN ANALYZE
+SELECT * FROM bookings
+WHERE start_date >= '2023-01-01' 
+  AND end_date <= '2023-12-31';
+
+-- =============================================
+-- 2. RECOMMENDED INDEXES
+-- =============================================
 
 -- 1. Indexes for the users table
 -- Note: user_id is already indexed as it's a PRIMARY KEY
